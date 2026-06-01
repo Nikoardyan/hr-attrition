@@ -1,0 +1,21 @@
+services:
+  api:
+    build: .
+    container_name: hr-attrition-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./predictions.db:/app/predictions.db
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: hr-attrition-ui
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    environment:
+      - API_URL=http://api:8000
