@@ -33,20 +33,23 @@ def clean_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
     """
     n_missing = df.isnull().sum().sum()
     n_duplicates = df.duplicated().sum()
-    
+
     if n_missing > 0:
         print(f"⚠️  Warning: {n_missing} missing values ditemukan")
     if n_duplicates > 0:
         print(f"⚠️  Warning: {n_duplicates} duplikat ditemukan")
         df = df.drop_duplicates().reset_index(drop=True)
-    
+
     constant_cols = [col for col in df.columns if df[col].nunique() == 1]
-    df_clean = df.drop(columns=constant_cols).copy()
-    
-    print(f"✓ Cleaning: {len(constant_cols)} kolom konstan dihapus → {constant_cols}")
+    # Buang kolom ID — bukan fitur prediktif & tidak ada di schema API
+    id_cols = [c for c in ["EmployeeNumber"] if c in df.columns]
+    drop_cols = constant_cols + id_cols
+    df_clean = df.drop(columns=drop_cols).copy()
+
+    print(f"✓ Cleaning: {len(drop_cols)} kolom dihapus → {drop_cols}")
     print(f"  Shape: {df.shape} → {df_clean.shape}")
-    
-    return df_clean, constant_cols
+
+    return df_clean, drop_cols
 
 
 def encode_target(df: pd.DataFrame, target_col: str = 'Attrition') -> Tuple[pd.DataFrame, np.ndarray]:
@@ -61,7 +64,7 @@ def build_preprocessor(X: pd.DataFrame) -> Tuple[ColumnTransformer, List[str], L
     """Bikin preprocessor: StandardScaler (numerik) + OneHotEncoder (kategorikal)."""
     numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns.tolist()
     categorical_cols = X.select_dtypes(include=['object']).columns.tolist()
-    
+
     preprocessor = ColumnTransformer(
         transformers=[
             ('num', StandardScaler(), numerical_cols),
@@ -69,11 +72,11 @@ def build_preprocessor(X: pd.DataFrame) -> Tuple[ColumnTransformer, List[str], L
         ],
         remainder='drop'
     )
-    
-    print(f"✓ Preprocessor built:")
+
+    print("✓ Preprocessor built:")
     print(f"    {len(numerical_cols)} numerical → StandardScaler")
     print(f"    {len(categorical_cols)} categorical → OneHotEncoder")
-    
+
     return preprocessor, numerical_cols, categorical_cols
 
 
@@ -91,29 +94,29 @@ def preprocess(
     print("\n" + "=" * 60)
     print("PREPROCESSING PIPELINE (DNN)")
     print("=" * 60)
-    
+
     print("\n[1/5] Data Cleaning")
     df_clean, dropped_cols = clean_data(df)
-    
+
     print("\n[2/5] Encode Target")
     X, y = encode_target(df_clean, target_col)
-    
-    print(f"\n[3/5] Stratified Train-Test Split ({int((1-test_size)*100)}:{int(test_size*100)})")
+
+    print(f"\n[3/5] Stratified Train-Test Split ({int((1 - test_size) * 100)}:{int(test_size * 100)})")
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, stratify=y, random_state=random_state
     )
     print(f"  Train: {X_train.shape[0]} | Class dist: {np.bincount(y_train)}")
     print(f"  Test : {X_test.shape[0]} | Class dist: {np.bincount(y_test)}")
-    
+
     print("\n[4/5] Feature Transformation")
     preprocessor, num_cols, cat_cols = build_preprocessor(X_train)
     X_train_processed = preprocessor.fit_transform(X_train)
     X_test_processed = preprocessor.transform(X_test)
-    
+
     cat_feature_names = preprocessor.named_transformers_['cat'].get_feature_names_out(cat_cols).tolist()
     feature_names = num_cols + cat_feature_names
     print(f"  Features setelah one-hot: {len(feature_names)}")
-    
+
     if apply_smote:
         print("\n[5/5] SMOTE on Training Set Only")
         smote = SMOTE(random_state=random_state)
@@ -124,11 +127,11 @@ def preprocess(
         print("\n[5/5] SMOTE Skipped (apply_smote=False)")
         X_train_balanced = X_train_processed
         y_train_balanced = y_train
-    
+
     print("\n" + "=" * 60)
     print("✓ PREPROCESSING SELESAI (DNN)")
     print("=" * 60)
-    
+
     return {
         'X_train': X_train_balanced,
         'X_test': X_test_processed,
@@ -153,12 +156,12 @@ def preprocess_no_smote(
 ) -> Dict:
     """
     Versi preprocess TANPA SMOTE.
-    
+
     Dipakai untuk Random Forest dengan cross-validation,
     di mana SMOTE harus diterapkan di dalam tiap fold CV
     (pakai imblearn Pipeline) — supaya tidak terjadi data
     leakage ke fold validasi.
-    
+
     Steps:
         1. Clean data
         2. Encode target Yes/No → 1/0
@@ -169,33 +172,33 @@ def preprocess_no_smote(
     print("\n" + "=" * 60)
     print("PREPROCESSING PIPELINE (Random Forest — NO SMOTE)")
     print("=" * 60)
-    
+
     print("\n[1/4] Data Cleaning")
     df_clean, dropped_cols = clean_data(df)
-    
+
     print("\n[2/4] Encode Target")
     X, y = encode_target(df_clean, target_col)
-    
-    print(f"\n[3/4] Stratified Train-Test Split ({int((1-test_size)*100)}:{int(test_size*100)})")
+
+    print(f"\n[3/4] Stratified Train-Test Split ({int((1 - test_size) * 100)}:{int(test_size * 100)})")
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, stratify=y, random_state=random_state
     )
     print(f"  Train: {X_train.shape[0]} | Class dist: {np.bincount(y_train)}")
     print(f"  Test : {X_test.shape[0]} | Class dist: {np.bincount(y_test)}")
-    
+
     print("\n[4/4] Feature Transformation")
     preprocessor, num_cols, cat_cols = build_preprocessor(X_train)
     X_train_processed = preprocessor.fit_transform(X_train)
     X_test_processed = preprocessor.transform(X_test)
-    
+
     cat_feature_names = preprocessor.named_transformers_['cat'].get_feature_names_out(cat_cols).tolist()
     feature_names = num_cols + cat_feature_names
     print(f"  Features setelah one-hot: {len(feature_names)}")
-    
+
     print("\n" + "=" * 60)
     print("✓ PREPROCESSING SELESAI — siap untuk Pipeline + SMOTE-in-fold")
     print("=" * 60)
-    
+
     return {
         'X_train': X_train_processed,
         'X_test': X_test_processed,
@@ -213,13 +216,13 @@ def save_artifacts(artifacts: Dict, output_dir: str = 'models/'):
     """Simpan preprocessor & feature names."""
     import os
     os.makedirs(output_dir, exist_ok=True)
-    
+
     joblib.dump(artifacts['preprocessor'], f"{output_dir}/preprocessor.joblib")
-    
+
     import json
     with open(f"{output_dir}/feature_names.json", 'w') as f:
         json.dump(artifacts['feature_names'], f, indent=2)
-    
+
     print(f"✓ Artifacts saved to {output_dir}")
 
 
@@ -237,8 +240,8 @@ if __name__ == '__main__':
     df = load_data('data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv')
     artifacts = preprocess(df, target_col='Attrition', test_size=0.2, apply_smote=True)
     save_artifacts(artifacts, output_dir='models/')
-    
-    print(f"\nShape final:")
+
+    print("\nShape final:")
     print(f"  X_train: {artifacts['X_train'].shape}")
     print(f"  X_test : {artifacts['X_test'].shape}")
     print(f"  Features: {len(artifacts['feature_names'])}")

@@ -1,5 +1,5 @@
 """Training pipeline Random Forest dengan threshold tuning.
-SMOTE di dalam tiap fold CV (anti data leakage) + 
+SMOTE di dalam tiap fold CV (anti data leakage) +
 threshold optimization untuk maksimalkan F1.
 """
 import argparse
@@ -17,6 +17,7 @@ from sklearn.model_selection import (
     StratifiedKFold,
     cross_validate,
 )
+from sklearn.pipeline import Pipeline as SkPipeline
 from sklearn.metrics import (
     classification_report,
     confusion_matrix,
@@ -50,12 +51,12 @@ RF_PARAM_GRID = {
 
 def make_pipeline():
     """Pipeline: SMOTE → Random Forest.
-    
+
     Pakai ImbPipeline (dari imblearn), BUKAN sklearn Pipeline.
     Bedanya: ImbPipeline tahu cara handle SMOTE — dia cuma
     di-apply pas .fit(), tidak pas .predict()/.score().
-    
-    Hasilnya: pas cross-validation, SMOTE cuma jalan di 
+
+    Hasilnya: pas cross-validation, SMOTE cuma jalan di
     training fold, validation fold dibiarkan ASLI.
     """
     return ImbPipeline([
@@ -82,7 +83,7 @@ def tune(data, n_iter=30):
     search.fit(data["X_train"], data["y_train"])
 
     print("\n=== Best hyperparameters ===")
-    clean_params = {k.replace("rf__", ""): v 
+    clean_params = {k.replace("rf__", ""): v
                     for k, v in search.best_params_.items()}
     print(json.dumps(clean_params, indent=2))
     print(f"Best CV ROC-AUC: {search.best_score_:.4f}")
@@ -118,7 +119,7 @@ def cross_validate_pipeline(pipeline, data):
 
 def find_best_threshold(pipeline, data):
     """Cari threshold optimal yang memaksimalkan F1-score.
-    
+
     Default RF pakai threshold 0.5 — tapi karena data imbalance,
     threshold yang lebih rendah biasanya kasih recall lebih baik.
     Kita coba threshold dari 0.10 sampai 0.70, pilih yang F1 tertinggi.
@@ -126,10 +127,10 @@ def find_best_threshold(pipeline, data):
     print("\n=== Threshold Tuning ===")
     y_test = data["y_test"]
     y_proba = pipeline.predict_proba(data["X_test"])[:, 1]
-    
+
     thresholds = np.arange(0.10, 0.71, 0.02)
     best_thr, best_f1 = 0.5, 0.0
-    
+
     print(f"  {'Threshold':<12}{'F1':<10}{'Precision':<12}{'Recall':<10}")
     print(f"  {'-' * 44}")
     for thr in thresholds:
@@ -142,7 +143,7 @@ def find_best_threshold(pipeline, data):
             print(f"  {thr:<12.2f}{f1:<10.4f}{prec:<12.4f}{rec:<10.4f}")
         if f1 > best_f1:
             best_f1, best_thr = f1, float(thr)
-    
+
     print(f"\n  🎯 Optimal threshold: {best_thr:.2f} (F1 = {best_f1:.4f})")
     return best_thr
 
@@ -231,7 +232,18 @@ def main(n_iter=30):
     metrics = evaluate(best_pipeline, data, threshold=best_thr)
 
     # Simpan semua hasil
-    joblib.dump(best_pipeline, MODEL_DIR / "attrition_model_rf.joblib")
+    # Bundle: preprocessor (sudah fitted) + RF (sudah trained) → 1 file siap-serve.
+    # SMOTE tidak ikut karena hanya dipakai saat training, bukan saat prediksi.
+    serving_model = SkPipeline([
+        ("preprocessor", data["preprocessor"]),
+        ("rf", best_pipeline.named_steps["rf"]),
+    ])
+    joblib.dump(serving_model, MODEL_DIR / "attrition_model_rf.joblib")
+
+    # Overwrite feature_names biar konsisten dengan pipeline final
+    with open(MODEL_DIR / "feature_names.json", "w") as f:
+        json.dump(data["feature_names"], f, indent=2)
+
     with open(MODEL_DIR / "metrics_rf.json", "w") as f:
         json.dump({
             "test_metrics": metrics,
