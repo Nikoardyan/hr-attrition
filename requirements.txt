@@ -16,3 +16,4 @@ flake8==7.1.0
 streamlit==1.57.0
 plotly==5.22.0
 requests==2.32.3
+httpx2
