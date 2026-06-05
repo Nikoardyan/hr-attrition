@@ -234,3 +234,31 @@ seaborn==0.13.2
 streamlit==1.57.0
 plotly==5.22.0
 requests==2.32.3
+
+# --- API / serving ---
+fastapi==0.136.1
+uvicorn[standard]==0.30.1
+pydantic==2.13.4
+python-multipart==0.0.28
+sqlalchemy==2.0.30
+joblib==1.5.3
+
+# --- ML ---
+scikit-learn==1.5.0
+imbalanced-learn==0.12.3
+shap==0.46.0
+pandas==2.2.2
+numpy==1.26.4
+
+# --- training plots ---
+matplotlib==3.9.0
+seaborn==0.13.2
+
+# --- testing ---
+pytest==8.2.2
+flake8==7.1.0
+
+# --- UI ---
+streamlit==1.57.0
+plotly==5.22.0
+requests==2.32.3
