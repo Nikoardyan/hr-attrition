@@ -25,11 +25,11 @@ jobs:
 
       - name: Lint with flake8
         run: |
-          flake8 src api tests --max-line-length=100 --ignore=E203,W503,E501,W292,W391,W391,W391 --exclude=__pycache__
+          python -m flake8 src api tests --max-line-length=100 --ignore=E203,W503,E501,W292,W391,W391,W391 --exclude=__pycache__
 
       - name: Run tests
         run: |
-          pytest tests/ -v
+          python -m pytest tests/ -v
 
   docker-build:
     runs-on: ubuntu-latest
