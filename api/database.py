@@ -1,14 +1,25 @@
-"""SQLite database for prediction logging."""
+"""Database configuration for prediction logging (PostgreSQL support)."""
+import os
 from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy import Column, DateTime, Float, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
+# Default to SQLite if DATABASE_URL is not provided (for local testing without Docker)
 DB_PATH = Path(__file__).resolve().parents[1] / "predictions.db"
-DATABASE_URL = f"sqlite:///{DB_PATH}"
+DEFAULT_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+
+# Postgres URLs from sqlalchemy need 'postgresql://' instead of 'postgres://'
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# SQLite needs specific connect_args, PostgreSQL does not
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

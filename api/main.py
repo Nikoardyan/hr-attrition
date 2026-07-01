@@ -7,7 +7,8 @@ import joblib
 import numpy as np
 import pandas as pd
 import shap
-from fastapi import Depends, FastAPI, HTTPException
+import io
+from fastapi import Depends, FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -56,9 +57,7 @@ def _orig_of(name, num_cols, cat_cols):
     return name
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_db()
+def reload_model():
     _artifacts["threshold"] = _load_threshold()
     if MODEL_PATH.exists():
         model = joblib.load(MODEL_PATH)
@@ -83,6 +82,11 @@ async def lifespan(app: FastAPI):
         print(f"Model + SHAP loaded (threshold={_artifacts['threshold']})")
     else:
         print("Model not found. Train first: python -m src.train_rf")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    reload_model()
     yield
     _artifacts.clear()
 
@@ -200,3 +204,4 @@ def clear_predictions(db: Session = Depends(get_db)):
     deleted = db.query(PredictionRecord).delete()
     db.commit()
     return {"deleted": deleted}
+

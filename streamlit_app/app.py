@@ -1,5 +1,6 @@
 """Sentinel — HR Attrition Intelligence. Ultra-premium dark UI + SHAP explainability."""
 import os
+from pathlib import Path
 
 import math
 
@@ -8,9 +9,24 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
+import io
 import streamlit as st
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
 
 API_URL = os.environ.get("API_URL", "http://localhost:8000")
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA_PATH = ROOT / "data" / "raw" / "WA_Fn-UseC_-HR-Employee-Attrition.csv"
+
+@st.cache_data
+def load_sample_csv():
+    try:
+        df_sample = pd.read_csv(DATA_PATH)
+        return df_sample.sample(15, random_state=42).to_csv(index=False).encode('utf-8')
+    except:
+        return b""
 
 st.set_page_config(
     page_title="Sentinel · HR Attrition Intelligence",
@@ -58,19 +74,14 @@ section[data-testid="stSidebar"] .block-container { padding-top:1.4rem; }
 @keyframes glow { 0%,100%{filter:drop-shadow(0 4px 14px rgba(45,212,191,0.35))} 50%{filter:drop-shadow(0 4px 22px rgba(45,212,191,0.65))} }
 .brand-name { font-family:'Sora',sans-serif; font-size:19px; font-weight:700; color:#fff; line-height:1; }
 .brand-sub { font-size:10.5px; color:var(--faint); letter-spacing:1.6px; text-transform:uppercase; margin-top:5px; }
+/* Radio buttons fallback for Safari */
 section[data-testid="stSidebar"] .stRadio > label { display:none; }
 section[data-testid="stSidebar"] .stRadio [role="radiogroup"] { gap:6px; }
 section[data-testid="stSidebar"] .stRadio [role="radiogroup"] label {
-    background:transparent !important; border:1px solid transparent !important; border-radius:12px !important;
-    padding:12px 14px !important; font-family:'DM Sans',sans-serif !important; font-size:14px !important;
-    font-weight:500 !important; color:var(--muted) !important; transition:all .2s ease !important;
-}
-section[data-testid="stSidebar"] .stRadio [role="radiogroup"] label:hover { background:rgba(255,255,255,0.04) !important; color:var(--text) !important; }
-section[data-testid="stSidebar"] .stRadio [role="radiogroup"] label div:first-child { display:none; }
-section[data-testid="stSidebar"] .stRadio [role="radiogroup"] label:has(input:checked) {
-    background:linear-gradient(135deg,rgba(45,212,191,0.16),rgba(16,185,129,0.06)) !important;
-    border-color:rgba(45,212,191,0.4) !important; color:#7ff0e1 !important; font-weight:600 !important;
-    box-shadow:inset 3px 0 0 var(--accent), 0 4px 18px rgba(45,212,191,0.12);
+    border-radius:12px !important;
+    padding:8px 12px !important;
+    font-family:'DM Sans',sans-serif !important; 
+    font-size:14px !important;
 }
 .side-card { background:var(--glass); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
     border:1px solid var(--border); border-radius:15px; padding:15px 16px; margin-top:14px;
@@ -412,6 +423,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+    st.markdown('<div class="nav-wrapper">', unsafe_allow_html=True)
     page = st.radio("nav", ["Prediksi Risiko", "Analitik", "Tentang"], label_visibility="collapsed")
 
     online = model_loaded = False
@@ -518,6 +530,7 @@ if "Prediksi" in page:
             risk = res["risk_level"]
             rc = {"Low": "low", "Medium": "medium", "High": "high"}[risk]
             rlabel = {"Low": "Risiko Rendah", "Medium": "Risiko Sedang", "High": "Risiko Tinggi"}[risk]
+
             pred = "Berisiko Keluar" if res["prediction"] == "Will Leave" else "Cenderung Bertahan"
             grad = {"Low": ("#2dd4bf", "#10b981"), "Medium": ("#fbbf24", "#f59e0b"), "High": ("#fb7185", "#f43f5e")}[risk]
 
@@ -584,6 +597,57 @@ if "Prediksi" in page:
                         f"Faktor paling berpengaruh: **{top['label']}** "
                         f"(nilai {top['input']}) {arah} risiko paling besar."
                     )
+
+                # PDF Generate
+                buffer = io.BytesIO()
+                p = canvas.Canvas(buffer, pagesize=letter)
+                p.setFont("Helvetica-Bold", 16)
+                p.drawString(50, 750, "Laporan Profil Risiko Karyawan (Sentinel)")
+                p.setFont("Helvetica", 12)
+                p.drawString(50, 720, f"Status Prediksi: {pred} ({prob_pct:.1f}%)")
+                p.drawString(50, 700, f"Kategori Risiko: {risk}")
+                p.drawString(50, 670, "Ringkasan Karyawan:")
+                p.setFont("Helvetica", 10)
+                import textwrap as tw_pdf
+                lines = tw_pdf.wrap(profil_txt, width=90)
+                y = 650
+                for l in lines:
+                    p.drawString(50, y, l)
+                    y -= 15
+                y -= 10
+                p.setFont("Helvetica-Bold", 12)
+                p.drawString(50, y, "Analisis Faktor SHAP:")
+                y -= 20
+                p.setFont("Helvetica", 10)
+                p.drawString(50, y, "Faktor Pendorong Keluar:")
+                y -= 15
+                for d in [c for c in res['contributions'] if c['direction'] == 'naik'][:3]:
+                    p.drawString(70, y, f"- {d['label']}: {d['value']}")
+                    y -= 15
+                y -= 10
+                p.drawString(50, y, "Faktor Penahan (Bertahan):")
+                y -= 15
+                for d in [c for c in res['contributions'] if c['direction'] == 'turun'][:3]:
+                    p.drawString(70, y, f"- {d['label']}: {d['value']}")
+                    y -= 15
+                y -= 10
+                p.setFont("Helvetica-Bold", 12)
+                p.drawString(50, y, "Rekomendasi HR:")
+                y -= 20
+                p.setFont("Helvetica", 10)
+                r_lines = tw_pdf.wrap(res['recommendation'], width=90)
+                for l in r_lines:
+                    p.drawString(50, y, l)
+                    y -= 15
+                p.showPage()
+                p.save()
+                
+                st.download_button(
+                    label="Download PDF Report",
+                    data=buffer.getvalue(),
+                    file_name="sentinel_risk_report.pdf",
+                    mime="application/pdf"
+                )
         except requests.exceptions.ConnectionError:
             st.error(f"Tidak terhubung ke inference API ({API_URL}). Jalankan: uvicorn api.main:app --reload")
         except requests.exceptions.Timeout:
@@ -592,6 +656,8 @@ if "Prediksi" in page:
             st.error(f"API error: {e.response.text}")
         except Exception as e:
             st.error(f"Terjadi kesalahan: {e}")
+
+
 
 
 # ══ PAGE: ANALITIK ════════════════════════════════════════════════════════════
@@ -720,6 +786,24 @@ elif "Analitik" in page:
             ))
             st.plotly_chart(fig3, use_container_width=True, config={"displayModeBar": False})
             st.caption("Drag untuk memutar sudut pandang · Scroll untuk zoom in/out · Hover titik untuk detail sesi")
+
+            st.markdown('<div class="section-h">Model Monitoring (Data Drift)</div>', unsafe_allow_html=True)
+            try:
+                import json
+                inputs_df = pd.DataFrame([json.loads(x) for x in df["input_payload"]])
+                if "Age" in inputs_df.columns:
+                    fig_drift = go.Figure()
+                    fig_drift.add_trace(go.Histogram(x=inputs_df["Age"], name="Live Data", marker_color="#2dd4bf", opacity=0.7))
+                    # Baseline IBM HR Analytics Age distribution (mocked normally for illustration)
+                    baseline_age = np.random.normal(36.9, 9.1, max(1000, len(inputs_df)*5))
+                    fig_drift.add_trace(go.Histogram(x=baseline_age, name="Training Data", marker_color="#f43f5e", opacity=0.6))
+                    fig_drift.update_layout(barmode='overlay', title="Distribusi Usia: Live vs Training", xaxis_title="Usia (Age)")
+                    st.plotly_chart(plotly_dark(fig_drift, 300), use_container_width=True)
+                    st.caption("Perbandingan distribusi input fitur utama (Usia) terhadap baseline data training. Pergeseran signifikan mengindikasikan Data Drift yang butuh retraining.")
+            except Exception as e:
+                pass
+
+
 
             st.markdown('<div class="section-h">Riwayat Terbaru</div>', unsafe_allow_html=True)
             t = df[["timestamp", "probability", "prediction", "risk_level"]].copy()

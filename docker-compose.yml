@@ -1,4 +1,16 @@
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: hr-attrition-db
+    environment:
+      - POSTGRES_USER=hr_user
+      - POSTGRES_PASSWORD=hr_password
+      - POSTGRES_DB=hr_predictions
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   api:
     build: .
     container_name: hr-attrition-api
@@ -6,7 +18,10 @@ services:
       - "8000:8000"
     volumes:
       - ./models:/app/models
-      - ./predictions.db:/app/predictions.db
+    environment:
+      - DATABASE_URL=postgresql://hr_user:hr_password@db:5432/hr_predictions
+    depends_on:
+      - db
 
   ui:
     build:
@@ -19,3 +34,7 @@ services:
       - api
     environment:
       - API_URL=http://api:8000
+      - DATABASE_URL=postgresql://hr_user:hr_password@db:5432/hr_predictions
+
+volumes:
+  postgres_data:

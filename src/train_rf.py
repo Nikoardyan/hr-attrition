@@ -213,10 +213,12 @@ def evaluate(pipeline, data, threshold=0.5):
     return metrics
 
 
-def main(n_iter=30):
+def main(n_iter=30, data_path=None):
+    if data_path is None:
+        data_path = DATA_PATH
     MODEL_DIR.mkdir(exist_ok=True)
 
-    df = load_data(DATA_PATH)
+    df = load_data(data_path)
     data = preprocess_no_smote(df)
 
     # 1. Hyperparameter tuning (SMOTE di tiap fold)

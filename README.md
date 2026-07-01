@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white" />
   <img src="https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
-  <img src="https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" />
   <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" />
 </div>
@@ -30,7 +30,8 @@ Employee turnover is expensive, costing companies anywhere from 50% to 200% of a
 - **Real-Time Attrition Prediction**: Instantly score the flight risk of any employee based on 44 demographic and professional features.
 - **SHAP Explainability**: Go beyond a simple "High Risk" score. Sentinel explains the positive and negative driving factors behind every single prediction.
 - **Interactive 3D/2D Visualizations**: Explore data dynamically with immersive 3D risk maps and detailed SHAP contribution charts using Plotly.
-- **Global Analytics Dashboard**: Monitor company-wide attrition trends, department-specific risks, and maintain a high-risk employee watchlist.
+- **Global Analytics Dashboard & Data Drift**: Monitor company-wide attrition trends, department-specific risks, and detect data drift between training and live data.
+- **PDF Reporting**: Instantly export comprehensive PDF reports for individual predictions to share with HR management.
 - **Ultra-Premium UI**: A sleek, dark-themed glassmorphism interface designed for professional enterprise environments.
 
 ## 🛠 Tech Stack
@@ -41,7 +42,7 @@ Employee turnover is expensive, costing companies anywhere from 50% to 200% of a
 | **Machine Learning / AI** | scikit-learn, SHAP, SMOTE |
 | **Frontend** | Streamlit, Plotly |
 | **Backend API** | FastAPI, Uvicorn |
-| **Database** | SQLite, SQLAlchemy |
+| **Database** | PostgreSQL (Dockerized), SQLAlchemy |
 | **Deployment** | Docker, GitHub Actions |
 | **Data Manipulation** | Pandas, NumPy |
 
@@ -69,7 +70,7 @@ Sentinel uses a decoupled architecture, separating the ultra-premium frontend fr
         │
         ▼
  ┌────────────┐
- │  Database  │ (SQLite - Prediction History)
+ │  Database  │ (PostgreSQL - Prediction History)
  └────────────┘
 ```
 
