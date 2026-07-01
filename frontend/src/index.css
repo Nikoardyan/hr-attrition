@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --color-inverse-on-surface: #233143;
+  --color-surface: #051424;
+  --color-on-tertiary-container: #d65569;
+  --color-on-primary-container: #798098;
+  --color-primary-fixed: #dae2fd;
+  --color-surface-container-lowest: #010f1f;
+  --color-primary-fixed-dim: #bec6e0;
+  --color-outline-variant: #45464d;
+  --color-on-secondary-container: #004d44;
+  --color-primary-container: #0f172a;
+  --color-on-tertiary-fixed: #400010;
+  --color-secondary-fixed-dim: #3cddc7;
+  --color-secondary-fixed: #62fae3;
+  --color-on-primary-fixed-variant: #3f465c;
+  --color-on-error: #690005;
+  --color-secondary: #44e2cd;
+  --color-on-secondary-fixed-variant: #005047;
+  --color-surface-container-highest: #273647;
+  --color-tertiary-fixed: #ffdadc;
+  --color-tertiary-fixed-dim: #ffb2b9;
+  --color-on-surface-variant: #c6c6cd;
+  --color-surface-container: #122131;
+  --color-on-tertiary: #67001f;
+  --color-surface-bright: #2c3a4c;
+  --color-surface-dim: #051424;
+  --color-on-primary: #283044;
+  --color-outline: #909097;
+  --color-surface-tint: #bec6e0;
+  --color-surface-container-low: #0d1c2d;
+  --color-on-background: #d4e4fa;
+  --color-error: #ffb4ab;
+  --color-secondary-container: #03c6b2;
+  --color-primary: #bec6e0;
+  --color-surface-container-high: #1c2b3c;
+  --color-surface-variant: #273647;
+  --color-on-surface: #d4e4fa;
+  --color-error-container: #93000a;
+  --color-on-primary-fixed: #131b2e;
+  --color-inverse-primary: #565e74;
+  --color-on-secondary: #003731;
+  --color-inverse-surface: #d4e4fa;
+  --color-on-secondary-fixed: #00201c;
+  --color-on-tertiary-fixed-variant: #891933;
+  --color-on-error-container: #ffdad6;
+  --color-tertiary-container: #38000d;
+  --color-background: #051424;
+  --color-tertiary: #ffb2b9;
+
+  --font-headline-sm: "Inter", sans-serif;
+  --font-body-sm: "Inter", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-headline-lg: "Inter", sans-serif;
+  --font-label-md: "Geist", sans-serif;
+  --font-data-display: "Geist", sans-serif;
+  --font-headline-md: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+
+  --spacing-gutter: 1.5rem;
+  --spacing-section-margin: 2.5rem;
+  --spacing-container-padding: 2rem;
+  --spacing-widget-gap: 1rem;
+}
+
+body {
+  background-color: #0F172A;
+}
+
+.glass-card {
+  background-color: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+.glass-panel {
+  background-color: rgba(18, 33, 49, 0.8);
+  backdrop-filter: blur(24px);
+}
+.glow-accent {
+  box-shadow: 0 0 15px rgba(68, 226, 205, 0.2);
+}

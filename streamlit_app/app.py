@@ -1,6 +1,9 @@
 """Sentinel — HR Attrition Intelligence. Ultra-premium dark UI + SHAP explainability."""
 import os
 
+import math
+
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -230,6 +233,125 @@ def why_chart(contribs):
     return plotly_dark(fig, height=380)
 
 
+def plotly_dark_3d(fig, height=460):
+    """Tema gelap untuk chart 3D — bisa diputar (drag), zoom (scroll)."""
+    fig.update_layout(
+        height=height, paper_bgcolor="rgba(0,0,0,0)",
+        font={"family": "DM Sans", "color": "#8a97a8"},
+        margin=dict(t=30, b=0, l=0, r=0),
+        scene=dict(
+            xaxis=dict(visible=False, showbackground=False),
+            yaxis=dict(visible=False, showbackground=False),
+            zaxis=dict(visible=False, showbackground=False),
+            bgcolor="rgba(0,0,0,0)",
+            camera=dict(eye=dict(x=1.5, y=1.5, z=1.1)),
+        ),
+        showlegend=False,
+    )
+    return fig
+
+
+def render_3d_risk_orb(prob_pct, risk_level):
+    """Bola partikel 3D interaktif — kepadatan & warna berubah sesuai skor risiko.
+    Bisa di-drag untuk diputar dan di-scroll untuk zoom."""
+    grad = {"Low": ("#2dd4bf", "#0e7c6b"), "Medium": ("#fbbf24", "#b45309"),
+            "High": ("#fb7185", "#9f1239")}[risk_level]
+    n_pts = 900
+    rng = np.random.default_rng(42)
+
+    # Titik tersebar merata di permukaan bola (Fibonacci sphere)
+    idx = np.arange(0, n_pts)
+    phi = np.arccos(1 - 2 * (idx + 0.5) / n_pts)
+    theta = np.pi * (1 + 5 ** 0.5) * idx
+    r_base = 1.0 + rng.normal(0, 0.025, n_pts)
+    x = r_base * np.sin(phi) * np.cos(theta)
+    y = r_base * np.sin(phi) * np.sin(theta)
+    z = r_base * np.cos(phi)
+
+    # Inti dalam padat sesuai persentase risiko (makin tinggi risiko, makin "penuh")
+    fill = max(0.08, prob_pct / 100)
+    n_core = int(1400 * fill)
+    core_r = rng.uniform(0, 0.94, n_core) ** (1 / 3)
+    core_phi = np.arccos(1 - 2 * rng.random(n_core))
+    core_theta = 2 * np.pi * rng.random(n_core)
+    cx = core_r * np.sin(core_phi) * np.cos(core_theta)
+    cy = core_r * np.sin(core_phi) * np.sin(core_theta)
+    cz = core_r * np.cos(core_phi)
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter3d(
+        x=x, y=y, z=z, mode="markers",
+        marker=dict(size=2.2, color=grad[1], opacity=0.35),
+        hoverinfo="skip",
+    ))
+    fig.add_trace(go.Scatter3d(
+        x=cx, y=cy, z=cz, mode="markers",
+        marker=dict(size=2.6, color=grad[0], opacity=0.85,
+                    line=dict(width=0)),
+        hoverinfo="skip",
+    ))
+    # Cincin orbit tipis untuk kesan "canggih"
+    ring_t = np.linspace(0, 2 * np.pi, 120)
+    for tilt in [0, math.pi / 3, -math.pi / 3]:
+        rx = 1.25 * np.cos(ring_t)
+        ry = 1.25 * np.sin(ring_t) * math.cos(tilt)
+        rz = 1.25 * np.sin(ring_t) * math.sin(tilt)
+        fig.add_trace(go.Scatter3d(
+            x=rx, y=ry, z=rz, mode="lines",
+            line=dict(color=grad[0], width=1.5),
+            opacity=0.25, hoverinfo="skip",
+        ))
+    fig.update_layout(scene_aspectmode="data")
+    return plotly_dark_3d(fig, height=420)
+
+
+def shap_3d_scatter(contribs):
+    """Sebaran 3D faktor SHAP: sumbu X = kontribusi, Y = urutan pengaruh,
+    Z = |kontribusi| (tinggi = paling berpengaruh). Bisa diputar & di-hover."""
+    if not contribs:
+        return None
+    c = contribs[:12]
+    labels = [x["label"] for x in c]
+    vals = [x["value"] for x in c]
+    inputs = [str(x["input"]) for x in c]
+    n = len(c)
+    xs = vals
+    ys = list(range(n))
+    zs = [abs(v) for v in vals]
+    colors = ["#f43f5e" if v > 0 else "#2dd4bf" for v in vals]
+    sizes = [10 + abs(v) * 40 for v in vals]
+
+    fig = go.Figure()
+    # Garis "tiang" dari dasar ke tiap titik biar kesan grafik 3D beneran
+    for i in range(n):
+        fig.add_trace(go.Scatter3d(
+            x=[xs[i], xs[i]], y=[ys[i], ys[i]], z=[0, zs[i]],
+            mode="lines", line=dict(color=colors[i], width=3),
+            opacity=0.35, hoverinfo="skip",
+        ))
+    fig.add_trace(go.Scatter3d(
+        x=xs, y=ys, z=zs, mode="markers+text",
+        marker=dict(size=sizes, color=colors, opacity=0.9,
+                    line=dict(color="rgba(255,255,255,0.25)", width=1)),
+        text=labels, textposition="top center",
+        textfont=dict(size=10, color="#cbd5e1"),
+        customdata=inputs,
+        hovertemplate="%{text}<br>nilai input: %{customdata}<br>kontribusi: %{x:+.3f}<extra></extra>",
+    ))
+    fig.update_layout(scene=dict(
+        xaxis_title="kontribusi", yaxis_title="", zaxis_title="magnitude",
+    ))
+    fig.update_layout(scene_camera=dict(eye=dict(x=1.6, y=-1.6, z=0.9)))
+    fig = plotly_dark_3d(fig, height=460)
+    fig.update_layout(scene=dict(
+        xaxis=dict(visible=True, showbackground=False, color="#56616f", gridcolor="rgba(255,255,255,0.06)"),
+        yaxis=dict(visible=False),
+        zaxis=dict(visible=True, showbackground=False, color="#56616f", gridcolor="rgba(255,255,255,0.06)"),
+        bgcolor="rgba(0,0,0,0)",
+    ))
+    return fig
+
+
 def employee_summary(payload, res):
     """Ringkasan profil karyawan + narasi faktor risiko dari SHAP."""
     gender_id = "Pria" if payload["Gender"] == "Male" else "Wanita"
@@ -417,7 +539,21 @@ if "Prediksi" in page:
 
             col_left, col_right = st.columns([1, 1.45], gap="large")
             with col_left:
-                st.markdown(render_ring(prob_pct, grad[0], grad[1]), unsafe_allow_html=True)
+                view_mode = st.radio(
+                    "view", ["Ring 2D", "Orb 3D"], horizontal=True,
+                    label_visibility="collapsed", key="risk_view_mode",
+                )
+                if view_mode == "Orb 3D":
+                    st.plotly_chart(render_3d_risk_orb(prob_pct, risk), use_container_width=True,
+                                     config={"displayModeBar": False})
+                    st.markdown(f"""
+                    <div style="text-align:center;margin-top:-14px">
+                      <div class="ring-num" style="font-size:34px">{prob_pct:.0f}%</div>
+                      <div class="ring-lab">Probabilitas · drag untuk putar</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(render_ring(prob_pct, grad[0], grad[1]), unsafe_allow_html=True)
                 st.markdown(f"""
                 <div style="padding-top:4px">
                   <div class="section-h">Rekomendasi Tindakan</div>
@@ -433,7 +569,14 @@ if "Prediksi" in page:
                   <span style="color:var(--faint)">angka = nilai input</span>
                 </div>
                 """, unsafe_allow_html=True)
-                st.plotly_chart(why_chart(res["contributions"]), use_container_width=True)
+                tab_2d, tab_3d = st.tabs(["Grafik Batang", "Grafik 3D Interaktif"])
+                with tab_2d:
+                    st.plotly_chart(why_chart(res["contributions"]), use_container_width=True)
+                with tab_3d:
+                    fig3d = shap_3d_scatter(res["contributions"])
+                    if fig3d is not None:
+                        st.plotly_chart(fig3d, use_container_width=True, config={"displayModeBar": False})
+                        st.caption("Drag = putar sudut pandang · Scroll = zoom · Hover titik = detail faktor")
                 if res["contributions"]:
                     top = res["contributions"][0]
                     arah = "menaikkan" if top["direction"] == "naik" else "menurunkan"
@@ -546,6 +689,37 @@ elif "Analitik" in page:
                 wt.columns = ["Waktu", "Probabilitas"]
                 wt["Probabilitas"] = wt["Probabilitas"].apply(lambda x: f"{x * 100:.1f}%")
                 st.dataframe(wt, use_container_width=True, hide_index=True)
+
+            st.markdown('<div class="section-h">Peta Risiko 3D · Sesi Prediksi</div>', unsafe_allow_html=True)
+            fig3 = go.Figure(go.Scatter3d(
+                x=df.index, y=df["probability"] * 100,
+                z=df["timestamp"].astype("int64") // 10**9,
+                mode="markers",
+                marker=dict(
+                    size=6, opacity=0.85,
+                    color=df["probability"],
+                    colorscale=[[0, "#2dd4bf"], [0.5, "#fbbf24"], [1, "#f43f5e"]],
+                    colorbar=dict(title="Prob.", tickfont=dict(color="#8a97a8"), title_font=dict(color="#8a97a8")),
+                    line=dict(color="rgba(255,255,255,0.2)", width=0.5),
+                ),
+                text=df["risk_level"],
+                hovertemplate="Sesi #%{x}<br>Probabilitas: %{y:.1f}%<br>Risiko: %{text}<extra></extra>",
+            ))
+            fig3.update_layout(scene=dict(
+                xaxis=dict(title="Urutan Sesi", visible=True, color="#56616f", gridcolor="rgba(255,255,255,0.06)"),
+                yaxis=dict(title="Probabilitas (%)", visible=True, color="#56616f", gridcolor="rgba(255,255,255,0.06)"),
+                zaxis=dict(title="Waktu", visible=True, color="#56616f", gridcolor="rgba(255,255,255,0.06)"),
+                bgcolor="rgba(0,0,0,0)",
+            ))
+            fig3 = plotly_dark_3d(fig3, height=460)
+            fig3.update_layout(scene=dict(
+                xaxis=dict(title="Urutan Sesi", visible=True, color="#56616f", gridcolor="rgba(255,255,255,0.06)"),
+                yaxis=dict(title="Probabilitas (%)", visible=True, color="#56616f", gridcolor="rgba(255,255,255,0.06)"),
+                zaxis=dict(title="Waktu", visible=True, color="#56616f", gridcolor="rgba(255,255,255,0.06)"),
+                bgcolor="rgba(0,0,0,0)",
+            ))
+            st.plotly_chart(fig3, use_container_width=True, config={"displayModeBar": False})
+            st.caption("Drag untuk memutar sudut pandang · Scroll untuk zoom in/out · Hover titik untuk detail sesi")
 
             st.markdown('<div class="section-h">Riwayat Terbaru</div>', unsafe_allow_html=True)
             t = df[["timestamp", "probability", "prediction", "risk_level"]].copy()

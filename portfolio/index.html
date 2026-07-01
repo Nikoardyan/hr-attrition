@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HR Attrition Predictor Portfolio</title>
+    <meta
+      name="description"
+      content="Portfolio project Data Science dan AI Machine Learning: HR Attrition Predictor."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#home" aria-label="HR Attrition portfolio home">
+        <span class="brand-mark">HA</span>
+        <span>HR Attrition Predictor</span>
+      </a>
+      <nav class="nav-links" aria-label="Navigasi utama">
+        <a href="#profile">Profil</a>
+        <a href="#problem">Masalah</a>
+        <a href="#solution">Solusi</a>
+        <a href="#result">Hasil</a>
+        <a href="#demo">Demo</a>
+        <a href="#reflection">Refleksi</a>
+        <a href="#appendix">Appendix</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-visual" aria-hidden="true"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Data Science dan AI Machine Learning Portfolio</p>
+          <h1>HR Attrition Predictor</h1>
+          <p class="hero-copy">
+            Sistem machine learning end-to-end untuk memprediksi risiko karyawan
+            resign, menjelaskan faktor pendorongnya, dan membantu HR melakukan
+            intervensi lebih awal.
+          </p>
+          <div class="hero-actions" aria-label="Aksi portfolio">
+            <a class="button primary" href="#problem">Masalah Bisnis</a>
+            <a class="button secondary" href="#demo">Lihat Produk</a>
+          </div>
+          <div class="hero-stats" aria-label="Ringkasan project">
+            <div>
+              <strong>1.470</strong>
+              <span>baris data</span>
+            </div>
+            <div>
+              <strong>35</strong>
+              <span>fitur HR</span>
+            </div>
+            <div>
+              <strong>0,782</strong>
+              <span>ROC-AUC RF</span>
+            </div>
+            <div>
+              <strong>70,2%</strong>
+              <span>recall kelas resign</span>
+            </div>
+          </div>
+        </div>
+        <aside class="hero-dashboard" aria-label="Preview dashboard HR Attrition Predictor">
+          <div class="dashboard-top">
+            <div>
+              <span class="demo-label">Retention Command Center</span>
+              <h2>Attrition Risk Monitor</h2>
+            </div>
+            <span class="status-pill">API Ready</span>
+          </div>
+          <div class="dashboard-grid">
+            <div class="dash-tile primary-tile">
+              <span>Prediksi</span>
+              <strong>Will Stay</strong>
+              <p>Threshold disesuaikan untuk mendukung early warning HR.</p>
+            </div>
+            <div class="dash-tile">
+              <span>Risk Score</span>
+              <strong>28%</strong>
+              <div class="mini-meter"><i style="width: 28%"></i></div>
+            </div>
+            <div class="dash-tile">
+              <span>Top Driver</span>
+              <strong>OverTime</strong>
+              <p>SHAP membantu menjelaskan alasan prediksi per karyawan.</p>
+            </div>
+            <div class="dash-tile">
+              <span>Model</span>
+              <strong>Random Forest</strong>
+              <p>ROC-AUC 0,782 dan recall 70,2% untuk kelas resign.</p>
+            </div>
+          </div>
+          <div class="driver-list" aria-label="Contoh faktor risiko">
+            <div><span>Monthly Income</span><b>menahan risiko</b></div>
+            <div><span>Years at Company</span><b>konteks tenure</b></div>
+            <div><span>Job Satisfaction</span><b>sinyal engagement</b></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="case-strip" aria-label="Nilai utama portfolio">
+        <article>
+          <span>01</span>
+          <strong>Business-first framing</strong>
+          <p>Metric dipilih berdasarkan biaya false negative pada kasus attrition.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <strong>Explainable prediction</strong>
+          <p>SHAP menerjemahkan output model menjadi alasan yang mudah dipahami HR.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <strong>Production-style delivery</strong>
+          <p>Model disajikan lewat FastAPI, Streamlit UI, logging, Docker, dan test.</p>
+        </article>
+      </section>
+
+      <section class="section band-light" id="profile">
+        <div class="section-grid">
+          <div>
+            <p class="section-kicker">Role Fit</p>
+            <h2>Profil dan Target Role</h2>
+          </div>
+          <div class="content-block">
+            <p>
+              Project ini dibangun untuk target role
+              Data Scientist atau Machine Learning Engineer, dengan fokus pada
+              problem bisnis HR yang nyata: bagaimana mendeteksi risiko attrition
+              sebelum karyawan benar-benar resign.
+            </p>
+            <div class="skill-grid">
+              <article class="skill-card">
+                <span>01</span>
+                <h3>Machine Learning</h3>
+                <p>Preprocessing, imbalance handling, model training, tuning, dan evaluasi.</p>
+              </article>
+              <article class="skill-card">
+                <span>02</span>
+                <h3>Deployment</h3>
+                <p>FastAPI, Streamlit, SQLite logging, Docker, dan testing API.</p>
+              </article>
+              <article class="skill-card">
+                <span>03</span>
+                <h3>Business Communication</h3>
+                <p>Mengubah output model menjadi insight dan rekomendasi HR yang actionable.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="story">
+        <div class="section-title">
+          <p class="section-kicker">Project Flow</p>
+          <h2>Masalah ke Solusi dalam Satu Alur</h2>
+        </div>
+        <div class="timeline">
+          <article>
+            <span>1</span>
+            <h3>Problem</h3>
+            <p>Turnover karyawan mahal dan sering baru diketahui setelah surat resign masuk.</p>
+          </article>
+          <article>
+            <span>2</span>
+            <h3>Data</h3>
+            <p>Dataset IBM HR Analytics: 1.470 karyawan, 35 fitur, target Attrition Yes atau No.</p>
+          </article>
+          <article>
+            <span>3</span>
+            <h3>Model</h3>
+            <p>Pipeline preprocessing, SMOTE, Random Forest, DNN, dan threshold tuning.</p>
+          </article>
+          <article>
+            <span>4</span>
+            <h3>Product</h3>
+            <p>API prediksi, dashboard Streamlit, explainability SHAP, dan prediction log.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section band-ink" id="problem">
+        <div class="section-grid">
+          <div>
+            <p class="section-kicker">Problem Statement</p>
+            <h2>Mengubah HR dari Reaktif Menjadi Proaktif</h2>
+          </div>
+          <div class="content-block">
+            <p>
+              Employee turnover dapat menimbulkan biaya rekrutmen, training,
+              kehilangan produktivitas, dan gangguan operasional. Karena itu,
+              tujuan project ini bukan hanya memprediksi siapa yang akan resign,
+              tetapi memberi early warning agar HR dapat melakukan retention
+              conversation, review kompensasi, atau evaluasi workload.
+            </p>
+            <div class="metric-row">
+              <div>
+                <strong>16%</strong>
+                <span>kelas positif resign</span>
+              </div>
+              <div>
+                <strong>Binary</strong>
+                <span>Attrition Yes atau No</span>
+              </div>
+              <div>
+                <strong>HR</strong>
+                <span>stakeholder utama</span>
+              </div>
+            </div>
+            <div class="decision-card">
+              <strong>Decision support, bukan auto-decision.</strong>
+              <p>
+                Output model digunakan untuk prioritas follow-up HR, bukan untuk
+                mengambil keputusan sepihak terhadap karyawan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section band-light" id="data">
+        <div class="section-title">
+          <p class="section-kicker">Data Understanding</p>
+          <h2>Dataset, EDA, dan Insight Awal</h2>
+        </div>
+        <div class="visual-grid">
+          <figure class="visual-card wide">
+            <img src="../reports/heatmap_top15.png" alt="Heatmap korelasi top 15 fitur HR attrition" />
+            <figcaption>Heatmap top feature correlation untuk membaca hubungan antar fitur utama.</figcaption>
+          </figure>
+          <div class="insight-list">
+            <article>
+              <h3>Class imbalance</h3>
+              <p>Attrition hanya sekitar 16%, sehingga evaluasi perlu fokus pada recall, F1, dan ROC-AUC.</p>
+            </article>
+            <article>
+              <h3>Faktor HR penting</h3>
+              <p>Fitur seperti overtime, income, job level, tenure, dan work-life context relevan untuk risiko resign.</p>
+            </article>
+            <article>
+              <h3>Business framing</h3>
+              <p>False negative lebih mahal karena karyawan berisiko tinggi bisa terlewat oleh HR.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="solution">
+        <div class="section-grid">
+          <div>
+            <p class="section-kicker">Solution Design</p>
+            <h2>ML Pipeline yang Siap Dipakai</h2>
+          </div>
+          <div class="architecture">
+            <div class="arch-node">Streamlit UI</div>
+            <div class="arch-line" aria-hidden="true"></div>
+            <div class="arch-node">FastAPI</div>
+            <div class="arch-line" aria-hidden="true"></div>
+            <div class="arch-node">Random Forest + SHAP</div>
+            <div class="arch-line" aria-hidden="true"></div>
+            <div class="arch-node">SQLite Log</div>
+          </div>
+          <div class="content-block full">
+            <div class="method-grid">
+              <article>
+                <h3>Preprocessing</h3>
+                <p>Numerical scaling, categorical encoding, dan feature pipeline agar training dan inference konsisten.</p>
+              </article>
+              <article>
+                <h3>Imbalance Handling</h3>
+                <p>SMOTE diterapkan pada training data untuk membantu model mengenali kelas resign.</p>
+              </article>
+              <article>
+                <h3>Modeling</h3>
+                <p>Membandingkan DNN dan Random Forest, lalu memakai threshold yang lebih sesuai dengan tujuan recall.</p>
+              </article>
+              <article>
+                <h3>Explainability</h3>
+                <p>SHAP menjelaskan faktor yang menaikkan atau menurunkan risiko setiap prediksi.</p>
+              </article>
+            </div>
+            <div class="evidence-row">
+              <div>
+                <span>Serving</span>
+                <strong>FastAPI</strong>
+                <p>Endpoint prediksi, explainability, feature importance, dan log prediksi.</p>
+              </div>
+              <div>
+                <span>Interface</span>
+                <strong>Streamlit</strong>
+                <p>Dashboard input karyawan, hasil risiko, rekomendasi, dan chart kontribusi.</p>
+              </div>
+              <div>
+                <span>Monitoring Base</span>
+                <strong>SQLite</strong>
+                <p>Prediction log tersimpan sebagai fondasi audit dan pemantauan model.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section band-light" id="result">
+        <div class="section-title">
+          <p class="section-kicker">Model Evaluation</p>
+          <h2>Hasil yang Relevan untuk Kasus Imbalanced Classification</h2>
+        </div>
+        <div class="scoreboard" aria-label="Metrik model Random Forest">
+          <div><span>Accuracy</span><strong>76,5%</strong></div>
+          <div><span>Precision</span><strong>37,5%</strong></div>
+          <div><span>Recall</span><strong>70,2%</strong></div>
+          <div><span>F1-score</span><strong>48,9%</strong></div>
+          <div><span>ROC-AUC</span><strong>78,2%</strong></div>
+          <div><span>Threshold</span><strong>0,28</strong></div>
+        </div>
+        <div class="visual-grid two">
+          <figure class="visual-card">
+            <img src="../reports/confusion_matrix_rf.png" alt="Confusion matrix Random Forest" />
+            <figcaption>Confusion matrix untuk melihat trade-off antara deteksi resign dan false alarm.</figcaption>
+          </figure>
+          <figure class="visual-card">
+            <img src="../reports/roc_curve_rf.png" alt="ROC curve Random Forest" />
+            <figcaption>ROC curve menunjukkan kemampuan model memisahkan kelas stay dan leave.</figcaption>
+          </figure>
+          <figure class="visual-card wide">
+            <img src="../reports/feature_importance_rf.png" alt="Feature importance Random Forest" />
+            <figcaption>Feature importance membantu menghubungkan model dengan insight HR.</figcaption>
+          </figure>
+        </div>
+        <div class="decision-card narrow">
+          <strong>Metric priority: recall pada kelas resign.</strong>
+          <p>
+            Dalam use case attrition, false negative lebih berisiko karena karyawan
+            berpotensi resign dapat tidak terdeteksi. Threshold 0,28 dipilih agar
+            model lebih sensitif terhadap kelas minoritas.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="demo">
+        <div class="section-grid">
+          <div>
+            <p class="section-kicker">Deployment</p>
+            <h2>Produk Akhir yang Bisa Dicoba Stakeholder</h2>
+          </div>
+          <div class="demo-panel">
+            <div class="window-bar" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="demo-body">
+              <div>
+                <p class="demo-label">Input Karyawan</p>
+                <h3>OverTime: Yes</h3>
+                <p>Monthly Income: 3.500 USD<br />Years at Company: 2<br />Job Satisfaction: 2</p>
+              </div>
+              <div class="risk-meter">
+                <span>Risiko</span>
+                <strong>Medium</strong>
+                <p>Schedule 1-on-1 untuk diskusi workload, growth, dan kompensasi.</p>
+              </div>
+            </div>
+          </div>
+          <div class="content-block full">
+            <div class="method-grid compact">
+              <article>
+                <h3>Website Demo</h3>
+                <p>Streamlit app: <code>http://localhost:8501</code></p>
+              </article>
+              <article>
+                <h3>API Docs</h3>
+                <p>FastAPI Swagger: <code>http://localhost:8000/docs</code></p>
+              </article>
+              <article>
+                <h3>Health Check</h3>
+                <p>Endpoint API: <code>http://localhost:8000/health</code></p>
+              </article>
+              <article>
+                <h3>Portfolio Page</h3>
+                <p>Halaman ini: <code>portfolio/index.html</code></p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section band-ink" id="reflection">
+        <div class="section-grid">
+          <div>
+            <p class="section-kicker">Reflection</p>
+            <h2>Impact, Limitation, dan Next Step</h2>
+          </div>
+          <div class="content-block">
+            <div class="reflection-list">
+              <article>
+                <h3>Impact</h3>
+                <p>HR dapat memprioritaskan retention action berdasarkan risiko dan faktor pendorong attrition.</p>
+              </article>
+              <article>
+                <h3>Limitation</h3>
+                <p>Dataset masih bersifat simulasi dan ukurannya kecil, sehingga validasi dengan data perusahaan nyata tetap diperlukan.</p>
+              </article>
+              <article>
+                <h3>Next Step</h3>
+                <p>Menambahkan monitoring drift, fairness check, dan retraining berkala setelah data produksi terkumpul.</p>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section band-light" id="appendix">
+        <div class="section-title">
+          <p class="section-kicker">Technical Appendix</p>
+          <h2>Bukti Teknis untuk Diskusi Lanjutan</h2>
+        </div>
+        <div class="appendix-grid">
+          <article>
+            <span>Model Comparison</span>
+            <h3>Random Forest vs DNN</h3>
+            <p>Random Forest dipakai pada serving karena ROC-AUC 0,782 dan recall 70,2% lebih selaras dengan kebutuhan early warning.</p>
+          </article>
+          <article>
+            <span>DNN Baseline</span>
+            <h3>ROC-AUC 0,746</h3>
+            <p>DNN tetap dikembangkan dengan Keras Tuner sebagai pembanding, dengan threshold 0,80 pada hasil evaluasi.</p>
+          </article>
+          <article>
+            <span>API Surface</span>
+            <h3>Prediction + Explainability</h3>
+            <p>Endpoint utama: <code>/predict</code>, <code>/explain</code>, <code>/feature-importance</code>, dan <code>/predictions</code>.</p>
+          </article>
+          <article>
+            <span>Data Risk</span>
+            <h3>Small Simulated Dataset</h3>
+            <p>Dataset IBM berukuran 1.470 baris, sehingga deployment nyata perlu validasi ulang dengan data internal perusahaan.</p>
+          </article>
+          <article>
+            <span>Production Next Step</span>
+            <h3>Drift, Fairness, Retraining</h3>
+            <p>Pengembangan berikutnya: monitoring data drift, fairness check, alerting, dan retraining pipeline berkala.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>HR Attrition Predictor - Data Science dan AI Machine Learning Portfolio</p>
+      <a href="#home">Kembali ke atas</a>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
