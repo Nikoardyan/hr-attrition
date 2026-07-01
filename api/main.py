@@ -7,8 +7,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import shap
-import io
-from fastapi import Depends, FastAPI, HTTPException, File, UploadFile
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -82,6 +81,7 @@ def reload_model():
         print(f"Model + SHAP loaded (threshold={_artifacts['threshold']})")
     else:
         print("Model not found. Train first: python -m src.train_rf")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

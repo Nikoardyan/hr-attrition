@@ -148,12 +148,12 @@ div[data-testid="stSliderTickBarMin"], div[data-testid="stSliderTickBarMax"] { c
 .stSlider [data-baseweb="slider"] > div > div { background:var(--accent) !important; }
 label, .stSelectbox label, .stNumberInput label, .stSlider label { color:var(--muted) !important; font-size:13px !important; }
 
-.stButton > button, .stFormSubmitButton > button {
+.stButton > button, .stFormSubmitButton > button, .stDownloadButton > button {
     background:linear-gradient(135deg,var(--accent-2),var(--accent)) !important; color:#042620 !important;
     border:none !important; border-radius:13px !important; padding:15px 30px !important; font-family:'Sora',sans-serif !important;
     font-size:15px !important; font-weight:700 !important; letter-spacing:.3px !important; transition:all .25s !important;
     box-shadow:0 10px 30px rgba(45,212,191,0.32) !important; }
-.stButton > button:hover, .stFormSubmitButton > button:hover { transform:translateY(-2px) !important; box-shadow:0 16px 40px rgba(45,212,191,0.5) !important; }
+.stButton > button:hover, .stFormSubmitButton > button:hover, .stDownloadButton > button:hover { transform:translateY(-2px) !important; box-shadow:0 16px 40px rgba(45,212,191,0.5) !important; }
 
 .verdict { display:flex; align-items:center; gap:20px; padding:24px 26px; border-radius:18px; border:1px solid var(--border);
     margin-bottom:16px; animation:fadeup .5s ease both; background:var(--glass); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
@@ -598,47 +598,103 @@ if "Prediksi" in page:
                         f"(nilai {top['input']}) {arah} risiko paling besar."
                     )
 
-                # PDF Generate
+                # PDF Generate (Premium ReportLab Style)
                 buffer = io.BytesIO()
                 p = canvas.Canvas(buffer, pagesize=letter)
-                p.setFont("Helvetica-Bold", 16)
-                p.drawString(50, 750, "Laporan Profil Risiko Karyawan (Sentinel)")
+                width, height = letter
+                
+                # Header background
+                p.setFillColorRGB(0.04, 0.06, 0.09) # Dark background
+                p.rect(0, height - 100, width, 100, stroke=0, fill=1)
+                
+                # Header text
+                p.setFillColorRGB(0.17, 0.83, 0.75) # Teal accent
+                p.setFont("Helvetica-Bold", 24)
+                p.drawString(50, height - 50, "SENTINEL")
+                p.setFillColorRGB(0.6, 0.6, 0.6)
                 p.setFont("Helvetica", 12)
-                p.drawString(50, 720, f"Status Prediksi: {pred} ({prob_pct:.1f}%)")
-                p.drawString(50, 700, f"Kategori Risiko: {risk}")
-                p.drawString(50, 670, "Ringkasan Karyawan:")
-                p.setFont("Helvetica", 10)
+                p.drawString(50, height - 70, "HR Attrition Intelligence Report")
+                
+                # Verdict section
+                p.setFillColorRGB(0.1, 0.1, 0.1)
+                p.setFont("Helvetica-Bold", 16)
+                p.drawString(50, height - 150, "Prediction Summary")
+                
+                p.setFont("Helvetica-Bold", 14)
+                if risk == "High":
+                    p.setFillColorRGB(0.95, 0.25, 0.37) # Red
+                elif risk == "Medium":
+                    p.setFillColorRGB(0.96, 0.62, 0.04) # Orange
+                else:
+                    p.setFillColorRGB(0.06, 0.72, 0.5) # Green
+                
+                p.drawString(50, height - 180, f"Status: {pred} ({prob_pct:.1f}%) - {risk} Risk")
+                
+                # Profile summary
+                p.setFillColorRGB(0.1, 0.1, 0.1)
+                p.setFont("Helvetica-Bold", 14)
+                p.drawString(50, height - 230, "Employee Profile")
+                p.setFont("Helvetica", 11)
+                p.setFillColorRGB(0.3, 0.3, 0.3)
                 import textwrap as tw_pdf
                 lines = tw_pdf.wrap(profil_txt, width=90)
-                y = 650
+                y = height - 250
                 for l in lines:
                     p.drawString(50, y, l)
                     y -= 15
-                y -= 10
-                p.setFont("Helvetica-Bold", 12)
-                p.drawString(50, y, "Analisis Faktor SHAP:")
+                
+                # SHAP Analysis
                 y -= 20
+                p.setFillColorRGB(0.1, 0.1, 0.1)
+                p.setFont("Helvetica-Bold", 14)
+                p.drawString(50, y, "Key Driving Factors (SHAP)")
+                y -= 25
+                
+                # Table headers
+                p.setFont("Helvetica-Bold", 10)
+                p.setFillColorRGB(0.2, 0.2, 0.2)
+                p.drawString(50, y, "Impact")
+                p.drawString(180, y, "Factor")
+                p.drawString(450, y, "Value")
+                y -= 10
+                p.setStrokeColorRGB(0.8, 0.8, 0.8)
+                p.line(50, y, width - 50, y)
+                y -= 15
+                
                 p.setFont("Helvetica", 10)
-                p.drawString(50, y, "Faktor Pendorong Keluar:")
-                y -= 15
-                for d in [c for c in res['contributions'] if c['direction'] == 'naik'][:3]:
-                    p.drawString(70, y, f"- {d['label']}: {d['value']}")
-                    y -= 15
-                y -= 10
-                p.drawString(50, y, "Faktor Penahan (Bertahan):")
-                y -= 15
-                for d in [c for c in res['contributions'] if c['direction'] == 'turun'][:3]:
-                    p.drawString(70, y, f"- {d['label']}: {d['value']}")
-                    y -= 15
-                y -= 10
-                p.setFont("Helvetica-Bold", 12)
-                p.drawString(50, y, "Rekomendasi HR:")
+                for d in res['contributions'][:6]: # Top 6 factors
+                    if d['direction'] == 'naik':
+                        p.setFillColorRGB(0.95, 0.25, 0.37)
+                        impact = "Increases Risk (+)"
+                    else:
+                        p.setFillColorRGB(0.06, 0.72, 0.5)
+                        impact = "Decreases Risk (-)"
+                    
+                    p.drawString(50, y, impact)
+                    p.setFillColorRGB(0.3, 0.3, 0.3)
+                    p.drawString(180, y, str(d['label'])[:40])
+                    p.drawString(450, y, str(d['value']))
+                    y -= 20
+                
+                # Recommendation
                 y -= 20
-                p.setFont("Helvetica", 10)
+                p.setFillColorRGB(0.1, 0.1, 0.1)
+                p.setFont("Helvetica-Bold", 14)
+                p.drawString(50, y, "Actionable Recommendation")
+                
+                p.setFont("Helvetica", 11)
+                p.setFillColorRGB(0.3, 0.3, 0.3)
                 r_lines = tw_pdf.wrap(res['recommendation'], width=90)
+                y -= 25
                 for l in r_lines:
                     p.drawString(50, y, l)
                     y -= 15
+                    
+                # Footer
+                p.setFont("Helvetica", 9)
+                p.setFillColorRGB(0.7, 0.7, 0.7)
+                p.drawString(50, 50, "Generated by Sentinel AI - Confidential & Proprietary")
+
                 p.showPage()
                 p.save()
                 
@@ -800,7 +856,7 @@ elif "Analitik" in page:
                     fig_drift.update_layout(barmode='overlay', title="Distribusi Usia: Live vs Training", xaxis_title="Usia (Age)")
                     st.plotly_chart(plotly_dark(fig_drift, 300), use_container_width=True)
                     st.caption("Perbandingan distribusi input fitur utama (Usia) terhadap baseline data training. Pergeseran signifikan mengindikasikan Data Drift yang butuh retraining.")
-            except Exception as e:
+            except Exception:
                 pass
 
 
