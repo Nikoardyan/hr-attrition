@@ -25,6 +25,8 @@ Employee turnover is expensive, costing companies anywhere from 50% to 200% of a
 
 **Sentinel** is an AI-driven platform that predicts employee flight risk (attrition) before it happens. By leveraging a robust Random Forest model and SHAP (SHapley Additive exPlanations), Sentinel not only predicts *who* is likely to leave, but explains exactly *why*—empowering HR professionals and managers to take targeted, proactive measures.
 
+This project was built as a final capstone project during the ibimbing DSML Bootcamp (Batch 40), covering the full ML lifecycle from data preprocessing to a production-ready, containerized deployment.
+
 ## ✨ Features
 
 - **Real-Time Attrition Prediction**: Instantly score the flight risk of any employee based on 44 demographic and professional features.
@@ -43,7 +45,7 @@ Employee turnover is expensive, costing companies anywhere from 50% to 200% of a
 | **Frontend** | Streamlit, Plotly |
 | **Backend API** | FastAPI, Uvicorn |
 | **Database** | PostgreSQL (Dockerized), SQLAlchemy |
-| **Deployment** | Docker, GitHub Actions |
+| **Deployment** | Docker, Docker Compose, GitHub Actions (CI/CD), Streamlit Community Cloud |
 | **Data Manipulation** | Pandas, NumPy |
 
 ## 🏗 Project Architecture
@@ -65,7 +67,7 @@ Sentinel uses a decoupled architecture, separating the ultra-premium frontend fr
         │
         ▼
  ┌────────────┐
- │  AI Model  │ (Scikit-Learn RF + SHAP Explainer)
+ │  AI Model  │ (Scikit-Learn RF Pipeline + SHAP Explainer)
  └──────┬─────┘
         │
         ▼
@@ -86,9 +88,10 @@ hr-attrition/
 │   ├── app.py              # Ultra-premium UI and dashboard
 │   └── requirements.txt    # Frontend dependencies
 ├── model/                  # ML models and scalers
-│   ├── rf_model.pkl        # Trained Random Forest model
+│   ├── rf_model.pkl        # Trained Random Forest pipeline (bundled)
 │   └── explainer.pkl       # Fitted SHAP explainer
 ├── notebooks/              # Jupyter notebooks for EDA and training
+├── docker-compose.yml      # Multi-container orchestration
 ├── Dockerfile              # Docker configuration
 └── README.md
 ```
@@ -99,7 +102,7 @@ Follow these steps to run Sentinel locally from scratch.
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/yourusername/hr-attrition.git
+git clone https://github.com/Nikoardyan/hr-attrition.git
 cd hr-attrition
 ```
 
@@ -136,6 +139,11 @@ Open a *new* terminal, activate your virtual environment, and run:
 streamlit run streamlit_app/app.py --server.port 8501
 ```
 
+**Or, run everything with Docker Compose:**
+```bash
+docker-compose up --build
+```
+
 ## 💻 Usage
 
 1. Navigate to `http://localhost:8501` in your web browser.
@@ -167,13 +175,13 @@ The FastAPI backend automatically provides Swagger documentation at `http://loca
 
 - **Dataset**: IBM HR Analytics Employee Attrition & Performance dataset (1,470 records, 44 features).
 - **Data Preprocessing**: Categorical encoding and feature scaling. Handled extreme class imbalance using **SMOTE** (Synthetic Minority Over-sampling Technique).
-- **Model Architecture**: Scikit-Learn **Random Forest Classifier**.
+- **Model Architecture**: Scikit-Learn **Random Forest Classifier**, bundled into a single deployable pipeline.
 - **Evaluation Metrics**: Tuned heavily for **Recall** to ensure high-risk employees are not missed.
-- **Model Performance**: 
-  - **ROC-AUC**: 0.78
-  - **Recall**: 0.70
+- **Model Performance**:
+  - **ROC-AUC**: 0.782
+  - **Recall**: 70.2%
   - **F1-Score**: 0.49
-  - *Note: Threshold is explicitly tuned to ~0.28 to maximize the capture of at-risk employees at the slight cost of precision.*
+  - *Note: Decision threshold is explicitly tuned to ~0.28 to maximize the capture of at-risk employees at the slight cost of precision.*
 
 ## 🔮 Future Improvements
 
@@ -198,11 +206,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## ✍️ Author
 
-**Your Name**  
-AI Engineer / Data Scientist  
-- 🐙 [GitHub](https://github.com/yourusername)  
-- 💼 [LinkedIn](https://linkedin.com/in/yourusername)  
-- ✉️ [Email](mailto:your.email@example.com)  
+**Niko Ardyan**
+Junior AI Engineer | Machine Learning | Generative AI & RAG
+- 🐙 [GitHub](https://github.com/Nikoardyan)
+- 🌐 [Portfolio](https://niko-portfolio-2.vercel.app)
 
 ---
 <p align="center">
